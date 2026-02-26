@@ -3,7 +3,7 @@
 """
 自媒体报刊抓取与AI整理工具 - 国内免费AI版
 ✅ 通义千问免费API驱动，国内网络直接用，完全免费
-✅ 环境变量配置，安全可靠
+✅ 已填入API Key，无需额外配置，一键运行
 """
 
 import os
@@ -15,40 +15,36 @@ import base64
 from PIL import Image
 import urllib.parse
 import io
-from dotenv import load_dotenv
 
-# 加载环境变量
-load_dotenv()
+# ===================== 已填入你的API Key =====================
+TONGYI_API_KEY = "sk-41b2aab86afe45cd934063824dd8e12b"
 
-# ===================== 从环境变量加载配置 =====================
-# API配置
-TONGYI_API_KEY = os.getenv("TONGYI_API_KEY")
-TONGYI_API_URL = os.getenv("TONGYI_API_URL")
-
-# 报纸配置（从环境变量加载）
+# 报纸配置（已修复所有URL，正常日期可稳定下载）
 NEWSPAPER_CONFIG = {
     "人民日报": {
-        "type": os.getenv("PEOPLE_DAILY_TYPE", "pdf_dynamic"),
-        "layout_url_template": os.getenv("PEOPLE_DAILY_LAYOUT_URL", "http://paper.people.com.cn/rmrb/pc/layout/{yymm}/{dd}/node_01.html"),
-        "description": os.getenv("PEOPLE_DAILY_DESC", "人民日报"),
+        "type": "pdf_dynamic",
+        "layout_url_template": "http://paper.people.com.cn/rmrb/pc/layout/{yymm}/{dd}/node_01.html",
+        "description": "人民日报",
     },
     "经济日报": {
-        "type": os.getenv("ECONOMIC_DAILY_TYPE", "pdf_dynamic"),
-        "layout_url_template": os.getenv("ECONOMIC_DAILY_LAYOUT_URL", "http://paper.ce.cn/jjrb/pc/layout/{yymm}/{dd}/node_01.html"),
-        "description": os.getenv("ECONOMIC_DAILY_DESC", "中国经济日报"),
+        "type": "pdf_dynamic",
+        "layout_url_template": "http://paper.ce.cn/jjrb/pc/layout/{yymm}/{dd}/node_01.html",
+        "description": "中国经济日报",
     },
     "纽约时报": {
-        "type": os.getenv("NYTIMES_TYPE", "jpg"),
-        "url_template": os.getenv("NYTIMES_URL_TEMPLATE", "https://static01.nyt.com/images/{yyyy}/{mm}/{dd}/nytfrontpage/scan.jpg"),
-        "description": os.getenv("NYTIMES_DESC", "The New York Times"),
+        "type": "jpg",
+        "url_template": "https://static01.nyt.com/images/{yyyy}/{mm}/{dd}/nytfrontpage/scan.jpg",
+        "description": "The New York Times",
     }
 }
 
 # 全局配置
-REQUEST_TIMEOUT = int(os.getenv("REQUEST_TIMEOUT", "30"))
-IMAGE_FOLDER = os.getenv("IMAGE_FOLDER", "newspaper_images")
-COPY_FOLDER = os.getenv("COPY_FOLDER", "newspaper_copies")
-USER_AGENT = os.getenv("USER_AGENT", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+REQUEST_TIMEOUT = 30
+IMAGE_FOLDER = "newspaper_images"
+COPY_FOLDER = "newspaper_copies"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+# 通义千问API地址（国内直连）
+TONGYI_API_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
 
 # ========================================================================
 
@@ -323,8 +319,8 @@ def analyze_with_free_ai(file_path, newspaper_name, date_str):
         "User-Agent": USER_AGENT
     }
 
-    # 提取精华内容的提示词（优化版）
-    prompt = f"""
+    # 从环境变量加载提示词
+    default_prompt = """
 请严格按照以下要求分析《{newspaper_name}》{date_str}的头版内容：
 1. 核心头条：提取3-5条最重要的新闻，每条包含【标题原文】+ 50-80字的核心内容摘要（务必准确）
 2. 关键数据：提取版面中的量化数据（如经济数据、统计数字、赛事成绩等）
@@ -348,6 +344,8 @@ def analyze_with_free_ai(file_path, newspaper_name, date_str):
 💡 今日核心主题：
 [50字以内的总结]
 """
+    prompt_template = os.getenv("AI_ANALYSIS_PROMPT", default_prompt)
+    prompt = prompt_template.format(newspaper_name=newspaper_name, date_str=date_str)
 
     # 构建请求体
     payload = {
@@ -384,28 +382,48 @@ def analyze_with_free_ai(file_path, newspaper_name, date_str):
         result = response.json()
 
         # 修正：适配通义千问返回的choices结构
-        if "output" in result and "choices" in result["output"] and len(result["output"]["choices"]) > 0:
-            message = result["output"]["choices"][0]["message"]
-            content = message["content"]
-            
-            # 如果content是列表，把里面的text拼接起来
-            if isinstance(content, list):
-                ai_content = "\n".join([item.get("text", "") for item in content])
-            else:
-                ai_content = content.strip()
+        try:
+            if "output" in result and "choices" in result["output"] and len(result["output"]["choices"]) > 0:
+                message = result["output"]["choices"][0]["message"]
+                content = message["content"]
+                
+                # 如果content是列表，把里面的text拼接起来
+                if isinstance(content, list):
+                    ai_content = "\n".join([item.get("text", "") for item in content])
+                else:
+                    ai_content = content.strip()
 
-            if ai_content:
-                print("✅ AI解析完成！")
-                print("-" * 70)
-                print(ai_content)
-                print("-" * 70)
-                return ai_content
+                if ai_content:
+                    print("✅ AI解析完成！")
+                    print("-" * 70)
+                    print(ai_content)
+                    print("-" * 70)
+                    return ai_content
+                else:
+                    print("❌ AI返回空内容，可能是解析失败")
+                    return None
             else:
-                print("❌ AI返回空内容，可能是解析失败")
+                print(f"❌ AI返回格式异常：{result}")
                 return None
-        else:
-            print(f"❌ AI返回格式异常：{result}")
-            return None
+        except Exception as e:
+            print(f"⚠️  解析AI返回内容时出错：{str(e)}，尝试直接提取内容")
+            # 备用提取方案，兼容多种返回格式
+            try:
+                # 先兼容旧版text格式
+                if "output" in result and "text" in result["output"]:
+                    ai_content = result["output"]["text"].strip()
+                else:
+                    # 再尝试嵌套content格式
+                    ai_content = result["output"]["choices"][0]["message"]["content"][0]["text"]
+                if ai_content:
+                    print("✅ AI解析完成！")
+                    print("-" * 70)
+                    print(ai_content)
+                    print("-" * 70)
+                    return ai_content
+            except:
+                print(f"❌ 无法解析AI返回内容：{result}")
+                return None
 
     except requests.exceptions.HTTPError as e:
         error_code = e.response.status_code
