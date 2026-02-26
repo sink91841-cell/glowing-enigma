@@ -73,14 +73,13 @@ python
 TONGYI_API_KEY = "你的通义千问API Key"
 
 5. 运行程序
-bash
 
 运行
 # 务必先进入项目目录（关键！）
 cd newspaper-ai-extractor
 
 # 运行主程序
-python newspaper_ai_extractor.py
+python main.py
 
 7. 操作流程
 选择日期（推荐选「昨天」，确保报纸已发布）
@@ -137,7 +136,19 @@ glowing-enigma/
 
 ├── README.md                  # 使用说明（本文档）
 
-├── newspaper_tool.py  # 主程序文件（核心代码）
+├──- main.py - 程序主入口
+
+├──- config.py - 配置管理
+
+├──- downloader.py - 下载模块
+
+├──- ai_client.py - AI客户端模块
+
+├──- file_processor.py - 文件处理模块
+
+├──- utils.py - 工具函数模块
+
+├──- services/ - 核心服务目录
 
 └──  requirements.txt           # Python依赖清单
 
