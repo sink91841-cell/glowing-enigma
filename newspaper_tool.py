@@ -17,7 +17,7 @@ import urllib.parse
 import io
 
 # ===================== 已填入你的API Key =====================
-TONGYI_API_KEY = "sk-41b2aab86afe45cd934063824dd8e12b"
+TONGYI_API_KEY = "你的API"
 
 # 报纸配置（已修复所有URL，正常日期可稳定下载）
 NEWSPAPER_CONFIG = {
