@@ -1,3 +1,7 @@
+[![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![国内可用](https://img.shields.io/badge/国内可用-✅-red)]((https://github.com/sink91841-cell/glowing-enigma))
+
 一款专为国内用户设计的报刊内容抓取工具，支持人民日报 / 经济日报 / 纽约时报的 PDF / 图片下载，并通过通义千问免费 AI提取头版精华内容（头条新闻、关键数据、核心主题），全程无需代理，国内网络直接使用。
  核心功能
  
@@ -15,22 +19,40 @@
 
  环境要求
 
-Python 3.7 及以上版本
-操作系统：Windows/macOS/Linux（Windows 需额外安装 poppler）
+| 依赖/环境 | 版本要求 | 备注 |
+|----------|----------|------|
+| Python   | ≥3.7     | 推荐3.8/3.9/3.10（兼容主流版本） |
+| requests | ≥2.31.0  | 网络请求核心库 |
+| pillow   | ≥10.0.0  | 图片处理（压缩、格式转换） |
+| pdf2image | ≥1.16.3 | PDF转图片（依赖系统级poppler） |
+| poppler  | ≥23.08.0 | Windows/macOS/Linux需单独安装 |
+
+**本地存储**：自动下载报刊文件，解析结果保存为TXT文件
+
+**健壮性保障**：
+  - 兼容多种AI返回格式，避免解析失败
+  - 完善的异常处理（网络超时、文件缺失、API错误）
+  - 环境变量支持自定义AI提示词
+  - 依赖自动检查，新手友好
 
  快速开始
  
 1. 克隆仓库
 bash
 运行
-git clone https://github.com/your-username/newspaper-ai-extractor.git
-cd newspaper-ai-extractor
+git clone (https://github.com/sink91841-cell/glowing-enigma)
+cd glowing-enigma
 
 2. 安装依赖
 bash
 运行
 # 基础依赖（所有系统）
-pip install requests pillow pdf2image
+
+# 一键安装所有Python依赖
+pip install -r requirements.txt
+
+# 若出现环境不一致问题，使用以下命令（确保安装到运行脚本的Python环境）
+python -m pip install requests pillow pdf2image
 
 # Windows用户额外安装poppler（PDF转图片依赖）
 # 下载地址：https://github.com/oschwartz10612/poppler-windows/releases
@@ -52,7 +74,12 @@ TONGYI_API_KEY = "你的通义千问API Key"
 
 5. 运行程序
 bash
+
 运行
+# 务必先进入项目目录（关键！）
+cd newspaper-ai-extractor
+
+# 运行主程序
 python newspaper_ai_extractor.py
 
 7. 操作流程
@@ -61,6 +88,7 @@ python newspaper_ai_extractor.py
 等待报刊文件下载完成
 选择是否进行 AI 解析
 选择是否保存解析结果（自动保存到newspaper_copies文件夹）
+
 📄 输出示例
 plaintext
 === 《人民日报》20260219 精华内容 ===
@@ -83,13 +111,23 @@ plaintext
 
  今日核心主题：
 聚焦新春民生与国际交往，展现中国发展成就与开放合作的大国姿态
- 目录结构
-plaintext
-newspaper-ai-extractor/
-├── newspaper_images/       # 下载的报刊PDF/图片文件
-├── newspaper_copies/       # AI解析后的精华内容文件
-├── newspaper_ai_extractor.py  # 主程序文件
-└── README.md               # 使用说明
+
+项目结构
+glowing-enigma/
+├── newspaper_images/          # 下载的报刊PDF/图片文件
+│   ├── 人民日报_20260223.pdf
+│   ├── 纽约时报_20260223.jpg
+│   └── ...
+├── newspaper_copies/          # AI解析后的精华内容TXT文件
+│   ├── 人民日报_20260223_精华内容.txt
+│   └── ...
+├── newspaper_tool.py  # 主程序文件（核心代码）
+├── requirements.txt           # Python依赖清单
+├── CHANGELOG.md               # 版本修改日志
+├── DEVELOPMENT.md             # 开发过程记录
+├── LICENSE                    # MIT开源许可证
+└── README.md                  # 使用说明（本文档）
+
  常见问题解决
 
 问题 1：API 调用失败（401 错误）
@@ -117,6 +155,7 @@ macOS/Linux 用户：确保已安装 poppler-utils
 确认网络可正常访问人民日报 / 经济日报官网
 
  自定义扩展
+ 
 1. 添加新报纸
 修改NEWSPAPER_CONFIG字典，新增报纸配置：
 python
@@ -128,13 +167,15 @@ python
 }
 
 2. 调整 AI 解析规则
+   
 修改analyze_with_free_ai函数中的prompt变量，可自定义：
 提取的头条数量
 摘要长度
 输出格式
 提取维度（如新增「政策解读」「国际要闻」等）
 
-4. 调整输出格式
+3. 调整输出格式
+   
 修改 AI 提示词中的输出模板，支持 Markdown/JSON/ 纯文本等格式。
  许可证
 本项目基于 MIT 许可证开源，详见LICENSE文件。
@@ -148,3 +189,31 @@ Fork 本仓库
 提交修改（git commit -am 'Add xxx feature'）
 推送到分支（git push origin feature/xxx）
 创建 Pull Request
+
+自定义扩展
+1. 自定义 AI 提示词
+通过环境变量修改 AI 解析规则（无需改代码）：
+bash
+运行
+# Windows
+set AI_ANALYSIS_PROMPT="你的自定义提示词模板"
+
+# macOS/Linux
+export AI_ANALYSIS_PROMPT="你的自定义提示词模板"
+提示词模板支持{newspaper_name}和{date_str}变量，示例：
+plaintext
+请提取《{newspaper_name}》{date_str}的头版经济新闻，每条摘要30字以内，输出为Markdown列表。
+
+2. 添加新报纸
+修改NEWSPAPER_CONFIG字典，新增配置：
+python
+运行
+"新华日报": {
+    "type": "pdf_dynamic",
+    "layout_url_template": "http://paper.xinhuanet.com/xhrb/pc/layout/{yymm}/{dd}/node_01.html",
+    "description": "新华日报",
+}
+
+3. 修改 AI 模型参数
+调整analyze_with_free_ai函数中的参数：
+temperature：0-1，值越高结果越随机（默认 0.1，保证准确性）
