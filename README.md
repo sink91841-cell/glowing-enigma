@@ -75,7 +75,7 @@ TONGYI_API_KEY = "你的通义千问API Key"
 4. 配置API Key（核心！必做）
 为了避免密钥提交到仓库，项目采用.env配置文件管理敏感信息：
 
-1). 复制示例配置文件为本地配置文件（不会上传到仓库）：
+ 复制示例配置文件为本地配置文件（不会上传到仓库）：
    ```bash
    # Windows
    copy .env.example .env
@@ -83,7 +83,7 @@ TONGYI_API_KEY = "你的通义千问API Key"
    # macOS/Linux
    cp .env.example .env
    
-2).用文本编辑器打开 .env 文件，修改以下核心配置：
+用文本编辑器打开 .env 文件，修改以下核心配置：
 # 替换为你的通义千问API Key（必填）
 TONGYI_API_KEY=你的真实API Key
 # 其他配置可按需修改（如保存目录、AI提示词）
