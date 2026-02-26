@@ -115,17 +115,28 @@ plaintext
 项目结构
 glowing-enigma/
 ├── newspaper_images/          # 下载的报刊PDF/图片文件
+
 │   ├── 人民日报_20260223.pdf
+
 │   ├── 纽约时报_20260223.jpg
+
 │   └── ...
 ├── newspaper_copies/          # AI解析后的精华内容TXT文件
+
 │   ├── 人民日报_20260223_精华内容.txt
+
 │   └── ...
+
 ├── newspaper_tool.py  # 主程序文件（核心代码）
+
 ├── requirements.txt           # Python依赖清单
+
 ├── CHANGELOG.md               # 版本修改日志
+
 ├── DEVELOPMENT.md             # 开发过程记录
+
 ├── LICENSE                    # MIT开源许可证
+
 └── README.md                  # 使用说明（本文档）
 
  常见问题解决
