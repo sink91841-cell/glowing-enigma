@@ -76,7 +76,6 @@ TONGYI_API_KEY = "你的通义千问API Key"
 为了避免密钥提交到仓库，项目采用.env配置文件管理敏感信息：
 
  复制示例配置文件为本地配置文件（不会上传到仓库）：
-   ```bash
    # Windows
    copy .env.example .env
 
