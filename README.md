@@ -127,9 +127,7 @@ glowing-enigma/
 
 │   └── ...
 
-├── newspaper_tool.py  # 主程序文件（核心代码）
-
-├── requirements.txt           # Python依赖清单
+├── .env.example               # 配置模板文件（新增）
 
 ├── CHANGELOG.md               # 版本修改日志
 
@@ -137,7 +135,12 @@ glowing-enigma/
 
 ├── LICENSE                    # MIT开源许可证
 
-└── README.md                  # 使用说明（本文档）
+├── README.md                  # 使用说明（本文档）
+
+├── newspaper_tool.py  # 主程序文件（核心代码）
+
+└──  requirements.txt           # Python依赖清单
+
 
  常见问题解决
 
