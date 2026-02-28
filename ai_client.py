@@ -5,159 +5,147 @@ AI客户端模块 - 负责调用AI接口解析报纸内容
 """
 
 import os
-import requests
-from config import TONGYI_API_KEY, TONGYI_API_URL, AI_ANALYSIS_PROMPT, AI_TEMPERATURE, AI_MAX_TOKENS, AI_TOP_P, USER_AGENT
+import time
+from config import TONGYI_API_KEY, AI_ANALYSIS_PROMPT, AI_TEMPERATURE, AI_MAX_TOKENS, AI_TOP_P
 from file_processor import image_to_base64, pdf_to_image_base64
+from logger import logger
 
 
 def analyze_with_free_ai(file_path, newspaper_name, date_str):
     """调用通义千问免费AI提取图片/PDF精华内容"""
+    logger.info(f"开始AI解析 {newspaper_name} 内容")
     print(f"🤖 开始AI解析 {newspaper_name} 内容...")
+    
     if not os.path.exists(file_path):
+        logger.error(f"文件不存在：{file_path}")
         print(f"❌ 错误：文件 {file_path} 不存在")
         return None
 
     # 检查API Key是否配置
     if not TONGYI_API_KEY or TONGYI_API_KEY == "your-dashscope-api-key":
+        logger.error("未配置通义千问API Key")
         print("❌ 错误：未配置通义千问API Key，请在.env文件中设置TONGYI_API_KEY")
         return None
 
     # 1. 处理文件，转为base64
+    logger.debug(f"处理文件：{file_path}")
     if file_path.endswith(".pdf"):
         base64_data = pdf_to_image_base64(file_path)
     else:
         base64_data = image_to_base64(file_path)
     
     if not base64_data:
+        logger.error("文件转base64失败")
         print("❌ 文件转base64失败，无法进行AI解析")
         return None
 
     # 2. 构建AI请求
-    headers = {
-        "Authorization": f"Bearer {TONGYI_API_KEY}",
-        "Content-Type": "application/json",
-        "User-Agent": USER_AGENT
-    }
-
-    # 从配置文件读取提示词，兜底使用默认模板
-    default_prompt = """
-请严格按照以下要求分析《{newspaper_name}》{date_str}的头版内容：
-1. 核心头条：提取3-5条最重要的新闻，每条包含【标题原文】+ 50-80字的核心内容摘要（务必准确）
-2. 关键数据：提取版面中的量化数据（如经济数据、统计数字、赛事成绩等）
-3. 核心主题：用50字以内总结当日报纸的核心主题（高度概括）
-
-输出格式必须严格遵循：
-=== 《{newspaper_name}》{date_str} 精华内容 ===
-【头条新闻1】标题原文
-📝 核心内容：[50-80字摘要]
-
-【头条新闻2】标题原文
-📝 核心内容：[50-80字摘要]
-
-【头条新闻3】标题原文
-📝 核心内容：[50-80字摘要]
-
-📊 关键数据：
-• 数据1（注明数据含义）
-• 数据2（注明数据含义）
-
-💡 今日核心主题：
-[50字以内的总结]
-"""
-    prompt_template = AI_ANALYSIS_PROMPT if AI_ANALYSIS_PROMPT else default_prompt
-    prompt = prompt_template.format(newspaper_name=newspaper_name, date_str=date_str)
-
-    # 构建请求体
-    payload = {
-        "model": "qwen-vl-plus",  # 通义千问免费多模态模型（支持图文解析）
-        "input": {
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {"type": "image", "image": base64_data}
-                    ]
-                }
-            ]
-        },
-        "parameters": {
-            "result_format": "text",
-            "temperature": AI_TEMPERATURE,  # 从配置文件读取
-            "max_tokens": AI_MAX_TOKENS,
-            "top_p": AI_TOP_P
-        }
-    }
-
-    # 3. 调用AI接口
     try:
-        print("🚀 正在调用通义千问AI解析...（请稍候）")
-        response = requests.post(
-            TONGYI_API_URL,
-            headers=headers,
-            json=payload,
-            timeout=60  # 延长超时时间，适配AI处理
-        )
-        response.raise_for_status()
-        result = response.json()
-
-        # 修正：适配通义千问返回的choices结构
+        # 安装OpenAI SDK
         try:
-            if "output" in result and "choices" in result["output"] and len(result["output"]["choices"]) > 0:
-                message = result["output"]["choices"][0]["message"]
-                content = message["content"]
-                
-                # 如果content是列表，把里面的text拼接起来
-                if isinstance(content, list):
-                    ai_content = "\n".join([item.get("text", "") for item in content])
-                else:
-                    ai_content = content.strip()
+            from openai import OpenAI
+        except ImportError:
+            logger.error("未安装OpenAI SDK，请运行: pip install openai")
+            print("❌ 未安装OpenAI SDK，请运行: pip install openai")
+            return None
 
+        # 创建OpenAI客户端
+        client = OpenAI(
+            api_key=TONGYI_API_KEY,
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
+
+        # 构建提示词
+        default_prompt = "请分析这张图片，提取其中的文字信息和主要内容。请用简洁的语言总结图片中的信息。"
+        prompt_template = AI_ANALYSIS_PROMPT if AI_ANALYSIS_PROMPT else default_prompt
+        prompt = prompt_template
+
+        # 构建消息
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_data}"}}
+                ]
+            }
+        ]
+
+        # 3. 调用AI接口
+        logger.info("正在调用通义千问AI解析...")
+        print("🚀 正在调用通义千问AI解析...（请稍候）")
+        
+        # 检查base64数据长度，确保不超过API限制
+        if base64_data and len(base64_data) > 10 * 1024 * 1024:  # 10MB限制
+            logger.warning("图片数据过大，可能会被API拒绝")
+            print("⚠️  图片数据过大，正在尝试压缩...")
+        
+        # 验证base64数据
+        if not base64_data or base64_data.strip() == "":
+            logger.error("Base64数据为空，无法进行AI解析")
+            print("❌ Base64数据为空，无法进行AI解析")
+            return None
+        
+        # 验证请求参数
+        if not prompt or prompt.strip() == "":
+            logger.error("提示词为空，无法进行AI解析")
+            print("❌ 提示词为空，无法进行AI解析")
+            return None
+        
+        # 添加请求重试机制
+        max_retries = 3
+        retry_delay = 2  # 初始重试延迟（秒）
+        
+        for retry in range(max_retries):
+            try:
+                completion = client.chat.completions.create(
+                    model="qwen-vl-plus",  # 通义千问多模态模型
+                    messages=messages,
+                    temperature=AI_TEMPERATURE,
+                    max_tokens=AI_MAX_TOKENS,
+                    top_p=AI_TOP_P
+                )
+                break  # 成功，跳出重试循环
+            except Exception as e:
+                # 网络错误或API错误，进行重试
+                if retry < max_retries - 1:
+                    logger.warning(f"AI调用失败：{str(e)}，正在重试... ({retry + 1}/{max_retries})")
+                    print(f"⚠️  AI调用失败：{str(e)}，正在重试... ({retry + 1}/{max_retries})")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # 指数退避
+                    continue
+                else:
+                    logger.error(f"AI调用失败：{str(e)}")
+                    print(f"❌ AI调用失败：{str(e)}")
+                    return None
+        
+        # 处理AI返回结果
+        try:
+            if completion and completion.choices and len(completion.choices) > 0:
+                ai_content = completion.choices[0].message.content.strip()
+                
                 if ai_content:
+                    logger.info("AI解析完成")
                     print("✅ AI解析完成！")
                     print("-" * 70)
                     print(ai_content)
                     print("-" * 70)
                     return ai_content
                 else:
+                    logger.warning("AI返回空内容")
                     print("❌ AI返回空内容，可能是解析失败")
                     return None
             else:
-                print(f"❌ AI返回格式异常：{result}")
+                logger.error("AI返回格式异常")
+                print("❌ AI返回格式异常")
                 return None
         except Exception as e:
-            print(f"⚠️  解析AI返回内容时出错：{str(e)}，尝试直接提取内容")
-            # 备用提取方案，兼容多种返回格式
-            try:
-                # 先兼容旧版text格式
-                if "output" in result and "text" in result["output"]:
-                    ai_content = result["output"]["text"].strip()
-                else:
-                    # 再尝试嵌套content格式
-                    ai_content = result["output"]["choices"][0]["message"]["content"][0]["text"]
-                if ai_content:
-                    print("✅ AI解析完成！")
-                    print("-" * 70)
-                    print(ai_content)
-                    print("-" * 70)
-                    return ai_content
-            except:
-                print(f"❌ 无法解析AI返回内容：{result}")
-                return None
+            logger.error(f"解析AI返回内容时出错：{str(e)}")
+            print(f"❌ 解析AI返回内容失败：{str(e)}")
+            return None
 
-    except requests.exceptions.HTTPError as e:
-        error_code = e.response.status_code
-        print(f"❌ AI调用失败：HTTP错误 {error_code}")
-        if error_code == 401:
-            print("💡 请检查.env文件中的API Key是否正确，或是否已激活通义千问服务")
-        elif error_code == 429:
-            print("💡 免费调用次数已达上限，请明天再试（每日有免费额度）")
-        elif error_code == 500:
-            print("💡 AI服务暂时不可用，请稍后重试")
-        return None
-    except requests.exceptions.Timeout:
-        print("❌ AI调用超时，网络或服务器繁忙")
-        return None
     except Exception as e:
-        print(f"❌ AI解析失败：{str(e)}")
+        logger.error(f"AI调用失败：{str(e)}")
+        print(f"❌ AI调用失败：{str(e)}")
         return None

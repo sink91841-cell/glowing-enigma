@@ -6,6 +6,7 @@
 
 import os
 import sys
+import datetime
 from config import NEWSPAPER_CONFIG, IMAGE_FOLDER, COPY_FOLDER
 
 
@@ -39,6 +40,7 @@ def format_date(date_obj):
         'mm': date_obj.strftime('%m'),
         'dd': date_obj.strftime('%d'),
         'yymm': date_obj.strftime('%Y%m'),
+        'ym': date_obj.strftime('%Y-%m'),  # 新增格式：2026-02
         'yyyymmdd': date_obj.strftime('%Y%m%d'),
     }
 
@@ -138,10 +140,20 @@ def check_dependencies():
         print(f"👉 请运行安装命令：pip install {' '.join(missing)}")
         print("💡 Windows用户额外安装poppler：https://github.com/oschwartz10612/poppler-windows/releases")
         print("💡 Mac用户：brew install poppler")
-        sys.exit(1)
+        return False
     else:
         print("✅ 所有依赖库检查通过")
         print()
+    
+    # 检查可选依赖
+    try:
+        import psycopg2
+        print("✅ 数据库依赖检查通过")
+    except ImportError:
+        print("ℹ️ 数据库功能可选，如需使用请安装：pip install psycopg2-binary")
+    print()
+    
+    return True
 
 # 导入需要的模块
 import datetime

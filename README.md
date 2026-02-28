@@ -1,244 +1,195 @@
-[![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![国内可用](https://img.shields.io/badge/国内可用-✅-red)]((https://github.com/sink91841-cell/glowing-enigma))
+# 自媒体报刊抓取工具
 
-一款专为国内用户设计的报刊内容抓取工具，支持人民日报 / 经济日报 / 纽约时报的 PDF / 图片下载，并通过通义千问免费 AI提取头版精华内容（头条新闻、关键数据、核心主题），全程无需代理，国内网络直接使用。
- 核心功能
- 
- 多报刊支持：人民日报（PDF）、经济日报（PDF）、纽约时报（头版图片）
- 
- AI 精华提取：基于通义千问免费多模态模型，智能解析图片 / PDF 内容
+一个用于下载和解析报纸内容的自动化工具，支持人民日报、纽约时报等报纸的抓取和AI解析。
 
- 结构化输出：自动提取头条新闻、关键数据、核心主题，格式规整
+## 功能特点
 
- 本地保存：自动下载报刊文件并保存 AI 解析结果，方便后续使用
+- ✅ 支持下载人民日报（PDF）和纽约时报（图片）
+- ✅ 使用通义千问AI解析报纸内容
+- ✅ 支持将解析结果保存到文件和数据库
+- ✅ 自动创建数据库和数据表
+- ✅ 友好的用户交互界面
+- ✅ 完善的错误处理和日志记录
 
- 国内适配：无需代理，通义千问 API 国内直连，无访问限制
+## 目录结构
 
- 完善的错误处理：网络超时、文件缺失、API 调用失败等场景全覆盖
+```
+自动化报纸程序/
+├── main.py                # 主入口文件
+├── services/
+│   └── newspaper_tool.py  # 核心工具类
+├── downloader.py          # 下载模块
+├── ai_client.py           # AI客户端模块
+├── file_processor.py      # 文件处理模块
+├── database.py            # 数据库模块
+├── utils.py               # 工具函数模块
+├── config.py              # 配置文件
+├── logger.py              # 日志模块
+├── test.py                # 单元测试
+├── CHANGELOG.md           # 修改日志
+├── .env                   # 环境配置文件
+└── .env.example           # 环境配置示例
+```
 
- 环境要求
+## 模块说明
 
-| 依赖/环境 | 版本要求 | 备注 |
-|----------|----------|------|
-| Python   | ≥3.7     | 推荐3.8/3.9/3.10（兼容主流版本） |
-| requests | ≥2.31.0  | 网络请求核心库 |
-| pillow   | ≥10.0.0  | 图片处理（压缩、格式转换） |
-| pdf2image | ≥1.16.3 | PDF转图片（依赖系统级poppler） |
-| poppler  | ≥23.08.0 | Windows/macOS/Linux需单独安装 |
+### 1. 主入口模块 (`main.py`)
+- 程序的启动入口
+- 检查依赖库是否安装
+- 验证API Key配置
+- 初始化并运行NewspaperTool
 
-**本地存储**：自动下载报刊文件，解析结果保存为TXT文件
+### 2. 核心工具模块 (`services/newspaper_tool.py`)
+- 整合所有核心功能
+- 处理用户交互（日期选择、报纸选择）
+- 协调下载、AI解析和保存流程
+- 管理数据库连接
 
-**健壮性保障**：
-  - 兼容多种AI返回格式，避免解析失败
-  - 完善的异常处理（网络超时、文件缺失、API错误）
-  - 环境变量支持自定义AI提示词
-  - 依赖自动检查，新手友好
+### 3. 下载模块 (`downloader.py`)
+- 负责下载报纸文件（PDF/图片）
+- 支持动态提取人民日报PDF链接
+- 实现网络请求重试机制
+- 处理文件保存和验证
 
- 快速开始
- 
-1. 克隆仓库
-bash
-运行
-git clone (https://github.com/sink91841-cell/glowing-enigma)
-cd glowing-enigma
+### 4. AI客户端模块 (`ai_client.py`)
+- 调用通义千问API解析报纸内容
+- 处理文件转base64编码
+- 构建AI请求消息
+- 实现请求重试和错误处理
 
-2. 安装依赖
-bash
-运行
-# 基础依赖（所有系统）
+### 5. 文件处理模块 (`file_processor.py`)
+- 图片转base64编码
+- PDF转图片并编码
+- 解析AI生成的内容
+- 保存解析结果到文件
 
-# 一键安装所有Python依赖
-pip install -r requirements.txt
+### 6. 数据库模块 (`database.py`)
+- 管理数据库连接
+- 自动创建数据库和数据表
+- 提供数据插入和批量操作
+- 处理数据库错误
 
-# 若出现环境不一致问题，使用以下命令（确保安装到运行脚本的Python环境）
-python -m pip install requests pillow pdf2image
+### 7. 工具函数模块 (`utils.py`)
+- 日期格式化
+- 文件夹初始化
+- 用户交互（日期选择、报纸选择）
+- 依赖库检查
 
-# Windows用户额外安装poppler（PDF转图片依赖）
-# 下载地址：https://github.com/oschwartz10612/poppler-windows/releases
-# 解压后将bin目录添加到系统环境变量
+### 8. 配置模块 (`config.py`)
+- 管理环境变量和配置项
+- 加载.env文件
+- 提供默认配置值
 
-# macOS用户安装poppler
-brew install poppler
+### 9. 日志模块 (`logger.py`)
+- 配置日志记录
+- 提供不同级别的日志输出
 
-# Linux用户安装poppler
-sudo apt-get install poppler-utils
+## 安装要求
 
-3. 获取通义千问 API Key
-访问阿里云通义千问控制台
-登录后进入「API-KEY 管理」，创建并复制你的 API Key
-替换代码中 TONGYI_API_KEY 变量的值：
-python
-运行
-TONGYI_API_KEY = "你的通义千问API Key"
+### 必要依赖
+- Python 3.8+
+- requests
+- pillow
+- pdf2image
+- python-dotenv
+- openai
 
-5. 运行程序
+### 可选依赖
+- psycopg2-binary (用于数据库功能)
 
-运行
-# 务必先进入项目目录（关键！）
-cd newspaper-ai-extractor
+### 系统依赖
+- Windows用户需要安装poppler：https://github.com/oschwartz10612/poppler-windows/releases
+- Mac用户：`brew install poppler`
 
-# 运行主程序
-python main.py
+## 安装步骤
 
-7. 操作流程
-选择日期（推荐选「昨天」，确保报纸已发布）
-选择报纸（输入序号 1/2/3 或报纸名称）
-等待报刊文件下载完成
-选择是否进行 AI 解析
-选择是否保存解析结果（自动保存到newspaper_copies文件夹）
+1. 克隆或下载项目到本地
+2. 安装依赖：
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. 配置API Key：
+   - 复制 `.env.example` 为 `.env`
+   - 在 `.env` 文件中填写通义千问API Key
 
-📄 输出示例
-plaintext
-=== 《人民日报》20260219 精华内容 ===
+## 使用方法
 
+1. 运行程序：
+   ```bash
+   python main.py
+   ```
 
-【头条新闻1】习近平复信美国艾奥瓦州友人
- 核心内容：习近平主席复信美国艾奥瓦州友人，回顾中美民间交往30余年历程，强调中美人民友谊是双边关系的重要基础，愿推动两国地方和民间层面交流合作走深走实。
+2. 按照提示操作：
+   - 选择日期（今天、昨天、前天或自定义）
+   - 选择报纸（人民日报或纽约时报）
+   - 等待下载完成
+   - 选择是否使用AI解析
+   - 选择是否保存结果到文件
+   - 选择是否保存结果到数据库
 
+## 配置说明
 
-【头条新闻2】“我们一家人在雄安过年”（新春走基层）
- 核心内容：新春走基层记者探访雄安新区，记录当地居民在安置区过年的温馨场景，新区配套设施完善，就业、教育、医疗等民生保障到位，居民幸福感显著提升。
+### 核心配置项
+- `TONGYI_API_KEY` - 通义千问API Key（必填）
+- `AI_ANALYSIS_PROMPT` - AI解析提示词
+- `DB_PASSWORD` - 数据库密码
 
+### 报纸配置
+- 人民日报：PDF格式，动态提取链接
+- 纽约时报：图片格式，直接URL下载
 
-【头条新闻3】“电影+”融合发展势头正劲（向新向优的中国产业）
- 核心内容：我国“电影+”融合发展模式成效显著，春节档票房同比增长15.6%，电影与文旅、科技、文创等产业深度融合，成为文化产业高质量发展的新引擎。
+## 常见问题
 
- 关键数据：
-• 中国冬奥代表团已获2金3银4铜（截至2026年2月19日）
-• 2026春节档电影票房同比增长15.6%，创历史新高
+### 1. 下载失败
+- **纽约时报**：需要稳定的网络连接（可能需要VPN）
+- **人民日报**：可能是日期未发布或停刊
 
- 今日核心主题：
-聚焦新春民生与国际交往，展现中国发展成就与开放合作的大国姿态
+### 2. AI解析失败
+- 检查API Key是否正确
+- 检查网络连接
+- 可能是内容审核不通过
 
-项目结构
-glowing-enigma/
-├── newspaper_images/          # 下载的报刊PDF/图片文件
+### 3. 数据库连接失败
+- 检查PostgreSQL服务是否运行
+- 检查数据库密码是否正确
+- 程序会自动创建数据库和数据表
 
-│   ├── 人民日报_20260223.pdf
+## 错误处理
 
-│   ├── 纽约时报_20260223.jpg
+程序包含完善的错误处理机制，会提供详细的错误信息和解决方案。常见错误包括：
+- 网络连接问题
+- API Key配置错误
+- 数据库连接问题
+- 内容审核失败
 
-│   └── ...
-├── newspaper_copies/          # AI解析后的精华内容TXT文件
+## 单元测试
 
-│   ├── 人民日报_20260223_精华内容.txt
+运行单元测试：
+```bash
+python test.py
+```
 
-│   └── ...
+测试覆盖：
+- 日期格式化
+- URL拼接
+- 提示词构建
+- 报纸配置
+- 日期验证
 
-├── .env.example               # 配置模板文件（新增）
+## 技术栈
 
-├── CHANGELOG.md               # 版本修改日志
+- Python 3.8+
+- requests (网络请求)
+- Pillow (图片处理)
+- pdf2image (PDF处理)
+- OpenAI SDK (AI调用)
+- psycopg2 (数据库连接)
+- Python-dotenv (环境配置)
 
-├── DEVELOPMENT.md             # 开发过程记录
+## 许可证
 
-├── LICENSE                    # MIT开源许可证
+MIT License
 
-├── README.md                  # 使用说明（本文档）
+## 更新日志
 
-├──- main.py - 程序主入口
-
-├──- config.py - 配置管理
-
-├──- downloader.py - 下载模块
-
-├──- ai_client.py - AI客户端模块
-
-├──- file_processor.py - 文件处理模块
-
-├──- utils.py - 工具函数模块
-
-├──- services/ - 核心服务目录
-
-└──  requirements.txt           # Python依赖清单
-
-
- 常见问题解决
-
-问题 1：API 调用失败（401 错误）
-检查 API Key 是否正确
-确认已激活通义千问服务（控制台可查看）
-确认 API Key 未过期或被禁用
-
-问题 2：PDF 转图片失败
-Windows 用户：确保 poppler 已安装并添加到环境变量
-macOS/Linux 用户：确保已安装 poppler-utils
-检查 PDF 文件是否损坏（重新下载后重试）
-
-问题 3：AI 调用超时
-检查网络连接是否稳定
-延长代码中timeout参数（当前为 60 秒）
-避开高峰期（如工作日 9:00-18:00）重试
-
-问题 4：429 错误（调用次数超限）
-通义千问免费版有每日调用额度限制
-次日自动恢复额度，或升级为付费版
-
-问题 5：报纸文件下载失败（404 错误）
-选择的日期可能未发布报纸（如节假日）
-优先选择「昨天」的日期重试
-确认网络可正常访问人民日报 / 经济日报官网
-
- 自定义扩展
- 
-1. 添加新报纸
-修改NEWSPAPER_CONFIG字典，新增报纸配置：
-python
-运行
-"新华日报": {
-    "type": "pdf_dynamic",
-    "layout_url_template": "新华日报版面页URL模板",
-    "description": "新华日报",
-}
-
-2. 调整 AI 解析规则
-   
-修改analyze_with_free_ai函数中的prompt变量，可自定义：
-提取的头条数量
-摘要长度
-输出格式
-提取维度（如新增「政策解读」「国际要闻」等）
-
-3. 调整输出格式
-   
-修改 AI 提示词中的输出模板，支持 Markdown/JSON/ 纯文本等格式。
- 许可证
-本项目基于 MIT 许可证开源，详见LICENSE文件。
- 反馈与支持
-提交 Issue：https://github.com/your-username/newspaper-ai-extractor/issues
-邮箱：your-email@example.com
- 贡献指南
-欢迎提交 PR 改进代码：
-Fork 本仓库
-创建特性分支（git checkout -b feature/xxx）
-提交修改（git commit -am 'Add xxx feature'）
-推送到分支（git push origin feature/xxx）
-创建 Pull Request
-
-自定义扩展
-1. 自定义 AI 提示词
-通过环境变量修改 AI 解析规则（无需改代码）：
-bash
-运行
-# Windows
-set AI_ANALYSIS_PROMPT="你的自定义提示词模板"
-
-# macOS/Linux
-export AI_ANALYSIS_PROMPT="你的自定义提示词模板"
-提示词模板支持{newspaper_name}和{date_str}变量，示例：
-plaintext
-请提取《{newspaper_name}》{date_str}的头版经济新闻，每条摘要30字以内，输出为Markdown列表。
-
-2. 添加新报纸
-修改NEWSPAPER_CONFIG字典，新增配置：
-python
-运行
-"新华日报": {
-    "type": "pdf_dynamic",
-    "layout_url_template": "http://paper.xinhuanet.com/xhrb/pc/layout/{yymm}/{dd}/node_01.html",
-    "description": "新华日报",
-}
-
-3. 修改 AI 模型参数
-调整analyze_with_free_ai函数中的参数：
-temperature：0-1，值越高结果越随机（默认 0.1，保证准确性）
+详见 [CHANGELOG.md](CHANGELOG.md)

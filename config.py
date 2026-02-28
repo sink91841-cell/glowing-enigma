@@ -13,8 +13,13 @@ load_dotenv()  # 加载 .env（用户本地配置，含真实密钥）
 load_dotenv(".env.example", override=False)  # 加载示例配置作为兜底
 
 # -------------------- API配置 --------------------
-TONGYI_API_KEY = os.getenv("TONGYI_API_KEY", "")  # 密钥无兜底，强制用户配置
+TONGYI_API_KEY = os.getenv("TONGYI_API_KEY", "")  # 通义千问API Key
 TONGYI_API_URL = os.getenv("TONGYI_API_URL", "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation")
+
+# -------------------- 百度文心一言API配置 --------------------
+ERNIE_API_KEY = os.getenv("ERNIE_API_KEY", "")  # 百度文心一言API Key
+ERNIE_API_URL = os.getenv("ERNIE_API_URL", "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/completions")
+ERNIE_ACCESS_TOKEN = os.getenv("ERNIE_ACCESS_TOKEN", "")  # 百度文心一言访问令牌
 
 # -------------------- AI提示词配置 --------------------
 AI_ANALYSIS_PROMPT = os.getenv("AI_ANALYSIS_PROMPT", "")
@@ -25,11 +30,6 @@ NEWSPAPER_CONFIG = {
         "type": os.getenv("PEOPLE_DAILY_TYPE", "pdf_dynamic"),
         "layout_url_template": os.getenv("PEOPLE_DAILY_LAYOUT_URL", "http://paper.people.com.cn/rmrb/pc/layout/{yymm}/{dd}/node_01.html"),
         "description": os.getenv("PEOPLE_DAILY_DESC", "人民日报"),
-    },
-    "经济日报": {
-        "type": os.getenv("ECONOMIC_DAILY_TYPE", "pdf_dynamic"),
-        "layout_url_template": os.getenv("ECONOMIC_DAILY_LAYOUT_URL", "http://paper.ce.cn/jjrb/pc/layout/{yymm}/{dd}/node_01.html"),
-        "description": os.getenv("ECONOMIC_DAILY_DESC", "中国经济日报"),
     },
     "纽约时报": {
         "type": os.getenv("NYTIMES_TYPE", "jpg"),
@@ -48,3 +48,10 @@ USER_AGENT = os.getenv("USER_AGENT", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) 
 AI_TEMPERATURE = float(os.getenv("AI_TEMPERATURE", 0.1))
 AI_MAX_TOKENS = int(os.getenv("AI_MAX_TOKENS", 2000))
 AI_TOP_P = float(os.getenv("AI_TOP_P", 0.9))
+
+# -------------------- 数据库配置 --------------------
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "3306")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_NAME = os.getenv("DB_NAME", "newspaper_db")
