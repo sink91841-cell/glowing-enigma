@@ -55,10 +55,25 @@ def analyze_with_free_ai(file_path, newspaper_name, date_str):
             base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
         )
 
-        # 构建提示词
+        # 构建提示词（根据报纸类型使用不同的提示词）
         default_prompt = "请分析这张图片，提取其中的文字信息和主要内容。请用简洁的语言总结图片中的信息。"
-        prompt_template = AI_ANALYSIS_PROMPT if AI_ANALYSIS_PROMPT else default_prompt
-        prompt = prompt_template
+        
+        # 针对纽约时报的特殊提示词（英文翻译成中文）
+        if newspaper_name == "纽约时报":
+            prompt = """请分析这张纽约时报报纸图片，完成以下任务：
+
+1. 提取图片中的所有英文文字信息，包括新闻标题、副标题、摘要等
+2. 将所有英文内容翻译成中文，保持原文的语气和风格
+3. 用简洁的语言总结3-5条重要新闻，每条新闻包含：
+   - 中文标题（翻译后的标题）
+   - 英文原标题（括号内标注）
+   - 中文摘要（50字左右）
+
+请使用正式、中立的中文语言，确保翻译准确、流畅。"""
+        else:
+            # 其他报纸使用配置的提示词或默认提示词
+            prompt_template = AI_ANALYSIS_PROMPT if AI_ANALYSIS_PROMPT else default_prompt
+            prompt = prompt_template
 
         # 构建消息
         messages = [
